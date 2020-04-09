@@ -41,6 +41,14 @@ function process_nytimes_results(data) {
   const results = {articles: []};
   for (let i = 0; i < data.length; i++) {
     const article = {};
+  
+    // validate id
+    if (data[i].uri) article.id = data[i].uri;
+    else { console.log(`\tskipping article ${i}: id missing.`); continue; }
+  
+    // validate url
+    if (data[i].url) article.url = data[i].url;
+    else { console.log(`\tskipping article ${i}: url missing.`); continue; }
     
     // validate title
     if (data[i].title) article.title = data[i].title;

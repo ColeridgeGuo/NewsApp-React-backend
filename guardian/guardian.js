@@ -36,6 +36,14 @@ function process_guardian_results(data) {
   for (let i = 0; i < data.length; i++) {
     const article = {};
     
+    // validate id
+    if (data[i].id) article.id = data[i].id;
+    else { console.log(`\tskipping article ${i}: id missing.`); continue; }
+    
+    // validate url
+    if (data[i].webUrl) article.url = data[i].webUrl;
+    else { console.log(`\tskipping article ${i}: url missing.`); continue; }
+    
     // validate title
     if (data[i].webTitle) article.title = data[i].webTitle;
     else { console.log(`\tskipping article ${i}: title missing.`); continue; }

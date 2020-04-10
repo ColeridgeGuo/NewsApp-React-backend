@@ -45,6 +45,9 @@ function process_nytimes_results(data) {
     // validate id
     if (data[i].uri) article.id = data[i].uri;
     else { console.log(`\tskipping article ${i}: id missing.`); continue; }
+    
+    // add source
+    article.src = 'nytimes';
   
     // validate url
     if (data[i].url) article.url = data[i].url;
@@ -88,6 +91,7 @@ function process_nytimes_results(data) {
   return results;
 }
 
+// handle home requests
 router.get('/', (req, res) => {
   get_nytimes_home()
     .then(data => {
@@ -95,10 +99,11 @@ router.get('/', (req, res) => {
     })
 })
 
+// handle section requests
 router.get('/:sectionId', (req, res) => {
   const sections = ['world', 'politics', 'business', 'technology', 'sports'];
   if (!sections.includes(req.params.sectionId)) {
-    res.json({error: {message: "Unknown section ID."}})
+    res.status(400).json({message: "Unknown section ID."})
   }
   else {
     get_nytimes_section(req.params.sectionId)

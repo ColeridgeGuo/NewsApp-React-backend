@@ -44,6 +44,9 @@ function process_guardian_results(data) {
     if (data[i].webUrl) article.url = data[i].webUrl;
     else { console.log(`\tskipping article ${i}: url missing.`); continue; }
     
+    // add source
+    article.src = 'guardian';
+    
     // validate title
     if (data[i].webTitle) article.title = data[i].webTitle;
     else { console.log(`\tskipping article ${i}: title missing.`); continue; }
@@ -83,6 +86,7 @@ function process_guardian_results(data) {
   return results;
 }
 
+// handle home requests
 router.get('/', (req, res) => {
   get_guardian_home()
     .then(data => {
@@ -90,10 +94,11 @@ router.get('/', (req, res) => {
     })
 })
 
+// handle section requests
 router.get('/:sectionId', (req, res) => {
   const sections = ['world', 'politics', 'business', 'technology', 'sports'];
   if (!sections.includes(req.params.sectionId)) {
-    res.json({error: {message: "Unknown section ID."}})
+    res.status(400).json({message: "Unknown section ID."})
   }
   else {
     const sectionId = (req.params.sectionId === 'sports') ? 'sport' : req.params.sectionId;

@@ -8,7 +8,7 @@ const guardian_api_key = "8f86228c-9df5-451e-a505-f7979e6ec8a3";
 
 // get Guardian home articles
 function get_guardian_home() {
-  return axios.get(`https://content.guardianapis.com/search?api-key=${guardian_api_key}&section=(world|sport|business|technology|politics)&show-blocks=all`)
+  return axios.get(`https://content.guardianapis.com/search?api-key=${guardian_api_key}&section=(world|sport|business|technology|politics)&show-blocks=all&page-size=20`)
     .then(response => {
       console.log(`Getting Guardian home - status: ${response.status}`);
       return response.data.response.results;
@@ -20,7 +20,7 @@ function get_guardian_home() {
 
 // get Guardian articles by section
 function get_guardian_by_section(section) {
-  return axios.get(`https://content.guardianapis.com/${section}?api-key=${guardian_api_key}&show-blocks=all`)
+  return axios.get(`https://content.guardianapis.com/${section}?api-key=${guardian_api_key}&show-blocks=all&page-size=20`)
     .then( response => {
       console.log(`Getting Guardian section \'${section}\' - status: ${response.status}`);
       return response.data.response.results;
@@ -79,6 +79,7 @@ function process_guardian_results(data) {
     // push validated article
     results.articles.push(article);
   }
+  results.articles = results.articles.slice(0,10);
   return results;
 }
 

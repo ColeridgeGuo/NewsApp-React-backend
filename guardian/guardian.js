@@ -22,7 +22,7 @@ function get_guardian_home() {
 function get_guardian_by_section(section) {
   return axios.get(`https://content.guardianapis.com/${section}?api-key=${guardian_api_key}&show-blocks=all&page-size=20`)
     .then( response => {
-      console.log(`Getting Guardian section \'${section}\' - status: ${response.status}`);
+      console.log(`Getting Guardian ${section} - status: ${response.status}`);
       return response.data.response.results;
     })
     .catch( error => {

@@ -28,7 +28,7 @@ function filter_nytimes_section(article) {
 function get_nytimes_section(section) {
   return axios.get(`https://api.nytimes.com/svc/topstories/v2/${section}.json?api-key=${nytimes_api_key}`)
     .then( response => {
-      console.log(`Getting NYTimes section \'${section}\' - status: ${response.status}`);
+      console.log(`Getting NYTimes ${section} - status: ${response.status}`);
       return response.data.results.slice(0,10);
     })
     .catch( error => {

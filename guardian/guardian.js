@@ -19,10 +19,10 @@ function get_guardian_home() {
 }
 
 // get Guardian articles by section
-function get_guardian_by_section(section) {
+function get_guardian_section(section) {
   return axios.get(`https://content.guardianapis.com/${section}?api-key=${guardian_api_key}&show-blocks=all&page-size=20`)
     .then( response => {
-      console.log(`Getting Guardian ${section} - status: ${response.status}`);
+      console.log(`Getting Guardian section \'${section}\' - status: ${response.status}`);
       return response.data.response.results;
     })
     .catch( error => {
@@ -86,6 +86,39 @@ function process_guardian_results(data) {
   return results;
 }
 
+// return Guardian article by id
+function get_guardian_article(articleId) {
+  return axios.get(`https://content.guardianapis.com/${articleId}?api-key=${guardian_api_key}&show-blocks=all`)
+    .then( response => {
+      console.log(`Getting Guardian article - status: ${response.status}`);
+      return response.data.response.content;
+    })
+    .catch( error => {
+      console.log(error);
+    })
+}
+
+// return processed Guardian article
+function process_guardian_article(data) {
+  const article = {};
+  
+  article.id = data.id;
+  article.src = 'guardian';
+  article.url = data.webUrl;
+  article.title = data.webTitle;
+  let assets;
+  try { assets = data.blocks.main.elements[0].assets; }
+  catch (e) {}
+  finally {
+    if (assets && assets.length > 0) { article.image = assets[assets.length - 1].file; }
+    else article.image = guardian_default_img_url;
+  }
+  article.sectionId = "";
+  article.date = /\d{4}-\d{2}-\d{2}/.exec(data.webPublicationDate)[0];
+  article.descp = data.blocks.body[0].bodyTextSummary;
+  return article;
+}
+
 // handle home requests
 router.get('/', (req, res) => {
   get_guardian_home()
@@ -102,11 +135,19 @@ router.get('/:sectionId', (req, res) => {
   }
   else {
     const sectionId = (req.params.sectionId === 'sports') ? 'sport' : req.params.sectionId;
-    get_guardian_by_section(sectionId)
+    get_guardian_section(sectionId)
       .then(data => {
         res.json(process_guardian_results(data))
       })
   }
+})
+
+// handle detailed article requests
+router.get('/article/:articleId', (req, res) => {
+  get_guardian_article(req.params.articleId)
+    .then(data => {
+      res.json(process_guardian_article(data))
+    })
 })
 
 module.exports = router;

@@ -28,7 +28,7 @@ function filter_nytimes_section(article) {
 function get_nytimes_section(section) {
   return axios.get(`https://api.nytimes.com/svc/topstories/v2/${section}.json?api-key=${nytimes_api_key}`)
     .then( response => {
-      console.log(`Getting NYTimes ${section} - status: ${response.status}`);
+      console.log(`Getting NYTimes section \'${section}\' - status: ${response.status}`);
       return response.data.results.slice(0,10);
     })
     .catch( error => {
@@ -91,6 +91,39 @@ function process_nytimes_results(data) {
   return results;
 }
 
+// get NYTimes article by url
+function get_nytimes_article(articleId) {
+  return axios.get(`https://api.nytimes.com/svc/search/v2/articlesearch.json?fq=web_url:("${articleId}")&api-key=${nytimes_api_key}`)
+    .then( response => {
+      console.log(`Getting NYTimes article - status: ${response.status}`);
+      return response.data.response.docs[0];
+    })
+    .catch( error => {
+      console.log(error);
+    });
+}
+
+// return processed NYTimes article
+function process_nytimes_article(data) {
+  const article = {};
+  
+  article.id = data.uri;
+  article.src = 'nytimes';
+  article.url = data.web_url;
+  article.title = data.headline.main;
+  try {
+    const image = data.multimedia.filter((multimedia) => multimedia.width > 2000);
+    article.image = `https://static01.nyt.com/${image[0].url}`;
+  }
+  catch (e) {}
+  finally { if (!data.image) data.image = nytimes_default_img_url; }
+  article.sectionId = "";
+  article.date = /\d{4}-\d{2}-\d{2}/.exec(data.pub_date)[0];
+  article.descp = data.abstract;
+  
+  return article;
+}
+
 // handle home requests
 router.get('/', (req, res) => {
   get_nytimes_home()
@@ -103,7 +136,7 @@ router.get('/', (req, res) => {
 router.get('/:sectionId', (req, res) => {
   const sections = ['world', 'politics', 'business', 'technology', 'sports'];
   if (!sections.includes(req.params.sectionId)) {
-    res.status(400).json({message: "Unknown section ID."})
+    res.status(400).json({message: `Unknown section ID: ${req.params.sectionId}`})
   }
   else {
     get_nytimes_section(req.params.sectionId)
@@ -111,6 +144,14 @@ router.get('/:sectionId', (req, res) => {
         res.json(process_nytimes_results(data))
       })
   }
+})
+
+// handle detailed article requests
+router.get('/article/:articleId', (req, res) => {
+  get_nytimes_article(req.params.articleId)
+    .then(data => {
+      res.json(process_nytimes_article(data))
+    })
 })
 
 module.exports = router;

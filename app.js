@@ -3,11 +3,14 @@ const app = express();
 
 const guardian = require('./guardian/guardian');
 const nytimes = require('./nytimes/nytimes');
+const search = require('./search');
 
 // GET Guardian articles
-app.use('/guardian', guardian);
+app.use('/guardian', guardian.router);
 
 // GET NYTimes articles
-app.use('/nytimes', nytimes);
+app.use('/nytimes', nytimes.router);
+
+app.use('/search', search);
 
 module.exports = app;

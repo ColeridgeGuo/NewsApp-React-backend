@@ -116,12 +116,69 @@ function process_nytimes_article(data) {
     article.image = `https://static01.nyt.com/${image[0].url}`;
   }
   catch (e) {}
-  finally { if (!data.image) data.image = nytimes_default_img_url; }
+  finally { if (!article.image) article.image = nytimes_default_img_url; }
   article.sectionId = "";
   article.date = /\d{4}-\d{2}-\d{2}/.exec(data.pub_date)[0];
   article.descp = data.abstract;
   
   return article;
+}
+
+// search NYTimes articles based on query
+function search_nytimes_results(query) {
+  return axios.get(`https://api.nytimes.com/svc/search/v2/articlesearch.json?q=${query}&api-key=${nytimes_api_key}`)
+    .then( response => {
+      console.log(`Searching NYTimes article by ${query} - status: ${response.status}`)
+      return response.data.response.docs;
+    })
+    .catch( error => {
+      console.log(error);
+    })
+}
+
+// return processed NYTimes search results
+function process_nytimes_search_results(data) {
+  const results = {articles: []};
+  for (let i = 0; i < data.length; i++) {
+    const article = {};
+    
+    // validate id
+    if (data[i].uri) article.id = data[i].uri;
+    else { console.log(`\tskipping article ${i}: id missing.`); continue; }
+    
+    // add source
+    article.src = 'nytimes';
+    
+    // validate url
+    if (data[i].web_url) article.url = data[i].web_url;
+    else { console.log(`\tskipping article ${i}: url missing.`); continue; }
+    
+    // validate title
+    if (data[i].headline.main) article.title = data[i].headline.main;
+    else { console.log(`\tskipping article ${i}: title missing.`); continue; }
+    
+    // validate img url
+    try {
+      const image = data[i].multimedia.filter((multimedia) => multimedia.width > 2000);
+      article.image = `https://www.nytimes.com/${image[0].url}`;
+    }
+    catch (e) {}
+    finally { if (!article.image) article.image = nytimes_default_img_url; }
+    
+    // validate sectionId
+    if (data[i].section_name) article.sectionId = data[i].section_name.toLowerCase();
+    else { console.log(`\tskipping article ${i}: sectionId missing.`); continue; }
+    
+    // validate publication date
+    const date_patt = /\d{4}-\d{2}-\d{2}/;
+    if (data[i].pub_date)
+      article.date = date_patt.exec(data[i].pub_date)[0];
+    else { console.log(`\tskipping article ${i}: date missing.`); continue; }
+    
+    // push validated article
+    results.articles.push(article);
+  }
+  return results;
 }
 
 // handle home requests
@@ -154,4 +211,16 @@ router.get('/article/:articleId', (req, res) => {
     })
 })
 
-module.exports = router;
+// handle search article requests
+router.get('/search/:query', (req, res) => {
+  search_nytimes_results(req.params.query)
+    .then(data => {
+      res.json(process_nytimes_search_results(data))
+    })
+})
+
+module.exports = {
+  router,
+  search_nytimes_results,
+  process_nytimes_search_results
+};

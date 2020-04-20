@@ -119,6 +119,18 @@ function process_guardian_article(data) {
   return article;
 }
 
+// search Guardian articles based on query
+function search_guardian_results(query) {
+  return axios.get(`https://content.guardianapis.com/search?q=${query}&api-key=${guardian_api_key}&show-blocks=all&page-size=20`)
+    .then( response => {
+      console.log(`Searching Guardian article by ${query} - status: ${response.status}`)
+      return response.data.response.results;
+    })
+    .catch( error => {
+      console.log(error);
+    })
+}
+
 // handle home requests
 router.get('/', (req, res) => {
   get_guardian_home()
@@ -150,4 +162,16 @@ router.get('/article/:articleId', (req, res) => {
     })
 })
 
-module.exports = router;
+// handle search article requests
+router.get('/search/:query', (req, res) => {
+  search_guardian_results(req.params.query)
+    .then(data => {
+      res.json(process_guardian_results(data))
+    })
+})
+
+module.exports = {
+  router,
+  search_guardian_results,
+  process_guardian_results
+};

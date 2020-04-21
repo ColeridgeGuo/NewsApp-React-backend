@@ -113,7 +113,7 @@ function process_guardian_article(data) {
     if (assets && assets.length > 0) { article.image = assets[assets.length - 1].file; }
     else article.image = guardian_default_img_url;
   }
-  article.sectionId = "";
+  article.sectionId = data.sectionId.toLowerCase();
   article.date = /\d{4}-\d{2}-\d{2}/.exec(data.webPublicationDate)[0];
   article.descp = data.blocks.body[0].bodyTextSummary;
   return article;

@@ -117,7 +117,7 @@ function process_nytimes_article(data) {
   }
   catch (e) {}
   finally { if (!article.image) article.image = nytimes_default_img_url; }
-  article.sectionId = "";
+  article.sectionId = data.section_name.toLowerCase();
   article.date = /\d{4}-\d{2}-\d{2}/.exec(data.pub_date)[0];
   article.descp = data.abstract;
   

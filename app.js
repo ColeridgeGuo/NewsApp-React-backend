@@ -1,5 +1,8 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
+
+app.use(cors());
 
 const guardian = require('./guardian/guardian');
 const nytimes = require('./nytimes/nytimes');
